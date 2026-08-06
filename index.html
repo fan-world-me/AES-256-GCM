@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заметки | fan_world_me</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0e17;
+            --card-bg: rgba(15, 23, 42, 0.8);
+            --accent: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.35);
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border: rgba(148, 163, 184, 0.15);
+            --quote-border: #38bdf8;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* City skyline background */
+        .city-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: 
+                linear-gradient(180deg, 
+                    #0a0e17 0%, 
+                    #0f172a 30%, 
+                    #1e293b 60%, 
+                    #0f172a 85%,
+                    #020617 100%);
+            overflow: hidden;
+        }
+
+        .stars {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                radial-gradient(1px 1px at 20px 30px, white, transparent),
+                radial-gradient(1px 1px at 40px 70px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(1.5px 1.5px at 90px 40px, white, transparent),
+                radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 160px 20px, white, transparent),
+                radial-gradient(1.5px 1.5px at 200px 60px, rgba(255,255,255,0.9), transparent),
+                radial-gradient(1px 1px at 250px 90px, white, transparent),
+                radial-gradient(1px 1px at 300px 40px, rgba(255,255,255,0.7), transparent),
+                radial-gradient(1.5px 1.5px at 350px 70px, white, transparent),
+                radial-gradient(1px 1px at 400px 25px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(1px 1px at 450px 85px, white, transparent),
+                radial-gradient(1px 1px at 500px 50px, rgba(255,255,255,0.6), transparent);
+            background-size: 550px 120px;
+            opacity: 0.55;
+            animation: twinkle 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.35; }
+            100% { opacity: 0.65; }
+        }
+
+        .buildings {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 260px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 4px;
+            padding: 0 2%;
+            opacity: 0.85;
+        }
+
+        .building {
+            background: linear-gradient(to top, #020617, #1e293b);
+            border-radius: 2px 2px 0 0;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .building::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent 0px,
+                    transparent 8px,
+                    rgba(56, 189, 248, 0.08) 8px,
+                    rgba(56, 189, 248, 0.08) 10px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent 0px,
+                    transparent 6px,
+                    rgba(56, 189, 248, 0.06) 6px,
+                    rgba(56, 189, 248, 0.06) 8px
+                );
+            border-radius: inherit;
+            opacity: 0.7;
+        }
+
+        .building.windows-on::after {
+            opacity: 1;
+            animation: windowsFlicker 4s ease-in-out infinite;
+        }
+
+        @keyframes windowsFlicker {
+            0%, 100% { opacity: 0.55; }
+            50% { opacity: 1; }
+        }
+
+        /* Copy button - inside each quote */
+        .copy-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 10px 16px;
+            margin-top: 10px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .copy-btn:hover {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: var(--accent);
+            box-shadow: 0 4px 24px var(--accent-glow);
+            transform: translateY(-1px);
+        }
+
+        .copy-btn:active {
+            transform: translateY(0);
+        }
+
+        .copy-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .copy-btn.copied {
+            border-color: #22c55e;
+            color: #22c55e;
+        }
+
+        .copy-btn.copied svg {
+            stroke: #22c55e;
+        }
+
+        /* Main content */
+        .container {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px 50px;
+        }
+
+        /* Note card */
+        .note-card {
+            width: 100%;
+            max-width: 640px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px 28px 24px;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.03),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .note-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0.5;
+        }
+
+        .card-glow {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 55%;
+            height: 90px;
+            background: radial-gradient(ellipse, var(--accent-glow), transparent 70%);
+            filter: blur(30px);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Note header */
+        .note-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .note-icon {
+            width: 22px;
+            height: 22px;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .note-title {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            color: var(--text);
+        }
+
+        /* Collapsible quote */
+        .quote-block {
+            border-left: 3px solid var(--quote-border);
+            background: rgba(2, 6, 23, 0.5);
+            border-radius: 0 12px 12px 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .quote-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+            gap: 12px;
+        }
+
+        .quote-header:hover {
+            background: rgba(56, 189, 248, 0.06);
+        }
+
+        .quote-date {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--accent);
+        }
+
+        .quote-date svg {
+            width: 15px;
+            height: 15px;
+            opacity: 0.9;
+        }
+
+        .quote-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .quote-toggle svg {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.3s ease;
+        }
+
+        .quote-block.open .quote-toggle svg {
+            transform: rotate(180deg);
+        }
+
+        .quote-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                        padding 0.3s ease,
+                        opacity 0.3s ease;
+            opacity: 0;
+            padding: 0 16px;
+        }
+
+        .quote-block.open .quote-content {
+            max-height: 500px;
+            opacity: 1;
+            padding: 0 16px 16px;
+        }
+
+        .quote-text {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 12.5px;
+            line-height: 1.75;
+            color: #cbd5e1;
+            word-break: break-all;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 8px;
+            padding: 14px;
+            max-height: 260px;
+            overflow-y: auto;
+            user-select: all;
+        }
+
+        .quote-text::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .quote-text::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .quote-text::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.3);
+            border-radius: 3px;
+        }
+
+        /* Author */
+        .author {
+            margin-top: 22px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+        }
+
+        .author span {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .author-icon {
+            width: 15px;
+            height: 15px;
+            opacity: 0.7;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid #22c55e;
+            color: #22c55e;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 200;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .container {
+                padding: 30px 14px 40px;
+            }
+
+            .note-card {
+                padding: 22px 18px 20px;
+                border-radius: 16px;
+            }
+
+            .quote-text {
+                font-size: 11.5px;
+                max-height: 200px;
+            }
+
+            .buildings {
+                height: 170px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .quote-date {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="city-bg">
+        <div class="stars"></div>
+        <div class="buildings" id="buildings"></div>
+    </div>
+
+    <div class="container">
+        <div class="note-card">
+            <div class="card-glow"></div>
+
+            <div class="note-header">
+                <svg class="note-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                </svg>
+                <span class="note-title">Заметки</span>
+            </div>
+
+            <!-- Collapsible quote -->
+            <div class="quote-block" id="quoteBlock">
+                <div class="quote-header" id="quoteHeader">
+                    <div class="quote-date">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                        </svg>
+                        <span>06.08.2026</span>
+                    </div>
+                    <div class="quote-toggle">
+                        <span class="toggle-label">Развернуть</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="quote-content">
+                    <div class="quote-text" id="keyText">ibZFaEebYIK/yCAT5mtG2tT/MCYowi+qSAmmoC0nTHaZFlAiUqySuwx8GEFQSmBLg81K8/kf6fKtZqn/uebW3cX0xdxfbAEVUUPW6+tE5wWhpViNliGYFYMkcUsnzsjtJwLrsx33W+u70ijG4m20lb9QXn6UA7xMh2azjSk9sSNwJN35RF/TOYnQKxvkqsjel7gd/kdwXvGGKVp06wc4V6vPBUkGUDSmCr7gx3ZhTP6nUgyjcpJiWeAHT5YU7zhCZopaKtZkoDHmvGJswHaENXPFt8Qu9a5zMgphjeZXYbE6zCfs4vZiZtqtmremgt+i4o6qn+JTpwOh0/4oRR0tqFqnuirEpiHeJjfxl6RlWAOEtbnB6XJhh7p5yQNExAsokokeBoRZxr8FF/zEdBc2yodfq/8zWrBBjrUfj/MSfof7EUrpMKghD4I5L1Q5QxM4tUl2oLof+uXOWQNHutytoC0xUWinUVa454yY6pnmak6c7r47tvDBIr5R4SrgpI97il8Trxu/FnOkIhdq8c5gJCwoGDHVMNOFrXXuupatqMR/Hs/I8CMPQM0kqcfyox7po4lbp/YTqkCsU4HPe5ShHv2mpumb9ZbFRTTxG+c=</div>
+                    <button class="copy-btn" title="Скопировать шифр">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+                        </svg>
+                        <span>Скопировать</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="author">
+                <svg class="author-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+                Автор: <span>fan_world_me</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Скопировано!</div>
+
+    <script>
+        // GitHub link on load
+        console.log('%c GitHub ', 'background:#0f172a;color:#38bdf8;font-weight:bold;font-size:14px;border-radius:4px;padding:2px 6px;', 'https://github.com/fan-world-me/AES-256-GCM');
+
+        // Buildings
+        const buildingsContainer = document.getElementById('buildings');
+        const buildingCount = window.innerWidth < 640 ? 16 : 26;
+        
+        for (let i = 0; i < buildingCount; i++) {
+            const b = document.createElement('div');
+            b.className = 'building';
+            const height = 55 + Math.random() * 170;
+            const width = 16 + Math.random() * 32;
+            b.style.height = height + 'px';
+            b.style.width = width + 'px';
+            if (Math.random() > 0.4) b.classList.add('windows-on');
+            buildingsContainer.appendChild(b);
+        }
+
+        // Collapsible quotes — works for any number of .quote-block elements
+        document.querySelectorAll('.quote-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const block = header.closest('.quote-block');
+                const isOpen = block.classList.toggle('open');
+                const label = header.querySelector('.toggle-label');
+                if (label) label.textContent = isOpen ? 'Свернуть' : 'Развернуть';
+            });
+        });
+
+        // Copy — one handler on the card, works for any number of buttons
+        const toast = document.getElementById('toast');
+        let toastTimer = null;
+
+        document.querySelector('.note-card').addEventListener('click', async (e) => {
+            const btn = e.target.closest('.copy-btn');
+            if (!btn) return;
+
+            const content = btn.closest('.quote-content');
+            const textEl = content && content.querySelector('.quote-text');
+            if (!textEl) return;
+
+            const text = textEl.textContent.trim();
+
+            try {
+                await navigator.clipboard.writeText(text);
+            } catch {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+            }
+
+            btn.classList.add('copied');
+            const span = btn.querySelector('span');
+            if (span) span.textContent = 'Скопировано!';
+
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                btn.classList.remove('copied');
+                if (span) span.textContent = 'Скопировать';
+                toast.classList.remove('show');
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
